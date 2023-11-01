@@ -1,0 +1,50 @@
+name: boinc-client 
+base: ubuntu@22.04
+version: 'latest'
+summary: Ubuntu ROCK for the Boinc client 
+description: |
+  A Jammy-based ROCK comprising the Boinc client.
+  By default, the client with run and attach itself to
+  a remote Account Manager, according to the provided
+  connection and authentication arguments.
+license: LGPL-3.0
+platforms: 
+    amd64:
+
+environment:
+  ACCOUNT_MANAGER_URL: ''
+  USERNAME: ''
+  PASSWORD: ''
+
+services:
+  boinc:
+    override: replace
+    startup: enabled
+    on-failure: shutdown
+    working-dir: /var/lib/boinc-client
+    command: boinc --allow_remote_gui_rpc [ --run_cpu_benchmarks ]
+  boinc-attach:
+    override: replace
+    startup: enabled
+    after: 
+      - boinc
+    on-failure: restart
+    on-success: ignore
+    working-dir: /var/lib/boinc-client
+    command: attach.sh
+
+parts:
+    install-boinc:
+        plugin: dump
+        source: .
+        overlay-packages:
+          - boinc-client
+          - tzdata
+          - ocl-icd-libopencl1
+          - intel-opencl-icd
+          - nvidia-opencl-dev
+        organize:
+          attach.sh: usr/local/bin/attach.sh
+        stage:
+          - usr/local/bin/attach.sh
+
